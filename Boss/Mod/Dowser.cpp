@@ -243,10 +243,9 @@ private:
 				   )
 					continue;
 				auto amt_j = chan["amount_msat"];
-				if (!amt_j.is_string())
+				if (!amt_j.is_number())
 					continue;
-				auto amt_s = std::string(amt_j);
-				return Ev::lift(Ln::Amount(amt_s));
+				return Ev::lift(Ln::Amount::msat(std::uint64_t(double(amt_j))));
 			}
 
 			/* The channel *can* disappear between the time

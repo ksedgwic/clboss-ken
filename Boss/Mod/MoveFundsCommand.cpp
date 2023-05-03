@@ -26,11 +26,11 @@ private:
 			     >([&bus](Msg::Manifestation const& _) {
 			return bus.raise(Msg::ManifestCommand{
 				"clboss-movefunds",
-				"amount sourcenode destnode feebudget",
-				"Move {amount} from a channel with "
+				"amount_msat sourcenode destnode feebudget_msat",
+				"Move {amount_msat} from a channel with "
 				"{sourcenode} to a channel with {destnode}, "
-				"with no more than {feebudget}.  "
-				"{amount} and {feebudget} must have 'msat' "
+				"with no more than {feebudget_msat}.  "
+				"{amount_msat} and {feebudget_msat} must not have 'msat' "
 				"suffixes, and {sourcenode} and {destnode} "
 				"must be node IDs.  "
 				"THIS COMMAND IS FOR DEBUGGING CLBOSS AND "
@@ -71,15 +71,15 @@ private:
 					dst = parms[2];
 					fee = parms[3];
 				} else {
-					amt = parms["amount"];
+					amt = parms["amount_msat"];
 					src = parms["sourcenode"];
 					dst = parms["destnode"];
-					fee = parms["feebudget"];
+					fee = parms["feebudget_msat"];
 				}
-				msg.amount = Ln::Amount(std::string(amt));
+				msg.amount = Ln::Amount::msat(std::uint64_t(double(amt)));
 				msg.source = Ln::NodeId(std::string(src));
 				msg.destination = Ln::NodeId(std::string(dst));
-				msg.fee_budget = Ln::Amount(std::string(fee));
+				msg.fee_budget = Ln::Amount::msat(std::uint64_t(double(fee)));
 			} catch (std::exception const& _) {
 				return bus.raise(Msg::CommandFail{
 					id, -32602, "Invalid parameters.",

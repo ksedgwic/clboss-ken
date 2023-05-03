@@ -140,17 +140,17 @@ private:
 				   , Ln::Amount& recv
 				   , Jsmn::Object const& c
 				   ) {
-		auto to_us = Ln::Amount(std::string(c["to_us_msat"]));
-		auto total = Ln::Amount(std::string(c["total_msat"]));
+		auto to_us = Ln::Amount::msat(std::uint64_t(double(c["to_us_msat"])));
+		auto total = Ln::Amount::msat(std::uint64_t(double(c["total_msat"])));
 		auto their = total - to_us;
 		for (auto h : c["htlcs"])
-			their -= Ln::Amount(std::string(h["amount_msat"]));
-		auto our_reserve = Ln::Amount(std::string(
+			their -= Ln::Amount::msat(std::uint64_t(double(h["amount_msat"])));
+		auto our_reserve = Ln::Amount::msat(std::uint64_t(double(
 			c["our_reserve_msat"]
-		));
-		auto their_reserve = Ln::Amount(std::string(
+		)));
+		auto their_reserve = Ln::Amount::msat(std::uint64_t(double(
 			c["their_reserve_msat"]
-		));
+		)));
 		send = to_us - our_reserve;
 		recv = their - their_reserve;
 	}

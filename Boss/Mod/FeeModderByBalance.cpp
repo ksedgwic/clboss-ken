@@ -180,12 +180,12 @@ private:
 						if (state != "CHANNELD_NORMAL")
 							continue;
 						found = true;
-						to_us = Ln::Amount(std::string(
+						to_us = Ln::Amount::msat(std::uint64_t(double(
 							c["to_us_msat"]
-						));
-						total = Ln::Amount(std::string(
+						)));
+						total = Ln::Amount::msat(std::uint64_t(double(
 							c["total_msat"]
-						));
+						)));
 						break;
 					}
 					if (found)
