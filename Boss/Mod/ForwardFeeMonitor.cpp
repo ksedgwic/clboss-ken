@@ -82,9 +82,9 @@ void ForwardFeeMonitor::start() {
 			if (out_it != peers.end())
 				out_id = out_it->second;
 
-			fee = Ln::Amount(std::string(
+			fee = Ln::Amount::object(
 				payload["fee_msat"]
-			));
+			);
 			resolution_time = double(payload["resolved_time"])
 					- double(payload["received_time"])
 					;
