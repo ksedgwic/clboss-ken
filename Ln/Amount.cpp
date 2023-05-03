@@ -28,12 +28,14 @@ bool Amount::valid_string(std::string const& s) {
 	return true;
 }
 
+/*
 Amount::Amount(std::string const& s) {
 	if (!valid_string(s))
 		throw std::invalid_argument("Ln::Amount string invalid.");
 	auto is = std::istringstream(std::string(s.begin(), s.end() - 4));
 	is >> v;
 }
+*/
 Amount::operator std::string() const {
 	auto os = std::ostringstream();
 	os << v << "msat";

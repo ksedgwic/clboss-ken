@@ -22,8 +22,8 @@ public:
 	Amount& operator=(Amount const&) =default;
 	~Amount() =default;
 
-	explicit
-	Amount(std::string const&);
+	/* explicit
+	Amount(std::string const&); */
 	explicit
 	operator std::string() const;
 	/* Return false if Amount() would throw given this
@@ -142,6 +142,7 @@ inline
 std::ostream& operator<<(std::ostream& os, Amount const& v) {
 	return os << std::string(v);
 }
+/*
 inline
 std::istream& operator>>(std::istream& is, Amount& v) {
 	auto s = std::string();
@@ -149,7 +150,7 @@ std::istream& operator>>(std::istream& is, Amount& v) {
 	v = Amount(s);
 	return is;
 }
-
+*/
 }
 
 #endif /* !defined(LN_AMOUNT_HPP) */
