@@ -4,6 +4,7 @@
 #include<cstddef>
 #include<utility>
 #include<vector>
+#include<cstdint>
 #include"Net/Fd.hpp"
 
 namespace Net {

@@ -2,6 +2,7 @@
 #define LN_SCID_HPP
 
 #include<cstddef>
+#include<cstdint>
 #include<string>
 #include<iostream>
 
