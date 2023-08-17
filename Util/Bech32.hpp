@@ -4,7 +4,10 @@
 #include<stdexcept>
 #include<string>
 #include<vector>
+
+#ifdef GCC_13
 #include<cstdint>
+#endif
 
 namespace Util { namespace Bech32 {
 

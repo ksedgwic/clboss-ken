@@ -4,8 +4,11 @@
 #include<cstddef>
 #include<utility>
 #include<vector>
-#include<cstdint>
 #include"Net/Fd.hpp"
+
+#ifdef GCC_13
+#include<cstdint>
+#endif
 
 namespace Net {
 

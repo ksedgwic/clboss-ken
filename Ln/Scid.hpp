@@ -2,9 +2,12 @@
 #define LN_SCID_HPP
 
 #include<cstddef>
-#include<cstdint>
 #include<string>
 #include<iostream>
+
+#ifdef GCC_13
+#include<cstdint>
+#endif
 
 namespace Ln {
 
