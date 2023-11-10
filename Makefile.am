@@ -125,6 +125,8 @@ libclboss_la_SOURCES = \
 	Boss/Mod/ChannelFinderByEarnedFee.hpp \
 	Boss/Mod/ChannelFinderByListpays.cpp \
 	Boss/Mod/ChannelFinderByListpays.hpp \
+	Boss/Mod/ChannelFinderByLiquidityAds.cpp \
+	Boss/Mod/ChannelFinderByLiquidityAds.hpp \
 	Boss/Mod/ChannelFinderByPopularity.cpp \
 	Boss/Mod/ChannelFinderByPopularity.hpp \
 	Boss/Mod/ChannelFundsComputer.cpp \

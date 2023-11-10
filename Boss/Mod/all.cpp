@@ -15,6 +15,7 @@
 #include"Boss/Mod/ChannelFinderByDistance.hpp"
 #include"Boss/Mod/ChannelFinderByEarnedFee.hpp"
 #include"Boss/Mod/ChannelFinderByListpays.hpp"
+#include"Boss/Mod/ChannelFinderByLiquidityAds.hpp"
 #include"Boss/Mod/ChannelFinderByPopularity.hpp"
 #include"Boss/Mod/ChannelFundsComputer.hpp"
 #include"Boss/Mod/ComplainerByLowConnectRate.hpp"
@@ -152,6 +153,7 @@ std::shared_ptr<void> all( std::ostream& cout
 	all->install<ChannelFinderByDistance>(bus, *waiter);
 	all->install<ChannelFinderByEarnedFee>(bus);
 	all->install<ChannelFinderByListpays>(bus);
+	all->install<ChannelFinderByLiquidityAds>(bus);
 	all->install<ChannelFinderByPopularity>(bus, *waiter);
 	all->install<ChannelCandidatePreinvestigator>(bus);
 	auto investigator = all->install< ChannelCandidateInvestigator::Main
