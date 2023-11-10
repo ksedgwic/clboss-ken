@@ -27,7 +27,10 @@ void ChannelFinderByLiquidityAds::start() {
 				  >([this](Msg::Init const& init) {
 					  rpc = &init.rpc;
 					  self_id = init.self_id;
-					  return Ev::lift();
+					  return Boss::log( bus, Info ,
+										"ChannelFinderByLiquidityAds: "
+										"saw Msg::Init");
+					  // return Ev::lift();
 				  });
 	bus.subscribe<Msg::ListpeersAnalyzedResult
 				  >([this](Msg::ListpeersAnalyzedResult const& r) {
@@ -38,7 +41,10 @@ void ChannelFinderByLiquidityAds::start() {
 									  , r.disconnected_channeled.end()
 									  , std::inserter(channels, channels.begin())
 						  );
-					  return Ev::lift();
+					  return Boss::log( bus, Info ,
+										"ChannelFinderByLiquidityAds: "
+										"saw Msg::ListpeersAnalyzedResult");
+					  // return Ev::lift();
 				  });
 	bus.subscribe<Msg::SolicitChannelCandidates
 				  >([this](Msg::SolicitChannelCandidates const& m) {
@@ -114,7 +120,7 @@ void ChannelFinderByLiquidityAds::start() {
 							  return act;
 						  }).then([this]() {
 							  running = false;
-							  return Boss::log(bus, Debug
+							  return Boss::log(bus, Info
 											   , "ChannelFinderByListpays: "
 											   "Run completion."
 								  );
