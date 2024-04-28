@@ -1,6 +1,6 @@
-#include"Boss/Mod/ListpeersAnalyzer.hpp"
-#include"Boss/Msg/ListpeersAnalyzedResult.hpp"
-#include"Boss/Msg/ListpeersResult.hpp"
+#include"Boss/Mod/ListpeerchannelsAnalyzer.hpp"
+#include"Boss/Msg/ListpeerchannelsAnalyzedResult.hpp"
+#include"Boss/Msg/ListpeerchannelsResult.hpp"
 #include"Ev/Io.hpp"
 #include"Jsmn/Object.hpp"
 #include"Json/Out.hpp"
@@ -9,10 +9,10 @@
 
 namespace Boss { namespace Mod {
 
-ListpeersAnalyzer::ListpeersAnalyzer(S::Bus& bus) {
-	bus.subscribe< Msg::ListpeersResult
-		     >([&bus](Msg::ListpeersResult const& l) {
-		auto ar = Msg::ListpeersAnalyzedResult();
+ListpeerchannelsAnalyzer::ListpeerchannelsAnalyzer(S::Bus& bus) {
+	bus.subscribe< Msg::ListpeerchannelsResult
+		     >([&bus](Msg::ListpeerchannelsResult const& l) {
+		auto ar = Msg::ListpeerchannelsAnalyzedResult();
 		ar.initial = l.initial;
 
 		for (auto peer : l.peers) {
