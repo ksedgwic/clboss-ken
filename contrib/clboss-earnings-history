@@ -26,6 +26,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run lightning-cli with specified network")
     parser.add_argument('--mainnet', action='store_true', help='Run on mainnet')
     parser.add_argument('--testnet', action='store_true', help='Run on testnet')
+    parser.add_argument('nodeid', nargs='?', help='The node ID to pass to clboss-earnings-history (optional)')
 
     args = parser.parse_args()
 
@@ -34,8 +35,10 @@ def main():
     else:
         network_option = '--mainnet'  # Default to mainnet if no option is specified
 
-    # Replace the API call
-    earnings_data = run_lightning_cli_command(network_option, 'clboss-earnings-history')
+    if args.nodeid:
+        earnings_data = run_lightning_cli_command(network_option, 'clboss-earnings-history', args.nodeid)
+    else:
+        earnings_data = run_lightning_cli_command(network_option, 'clboss-earnings-history')
 
     # Initialize totals
     total_forwarded = 0
@@ -47,12 +50,19 @@ def main():
     # Process and format data
     rows = []
     for entry in earnings_data['history']:
-        bucket_time = format_bucket_time(entry['bucket_time'])
-        earnings = entry['in_earnings']
-        forwarded = entry['in_forwarded']
-        expense = entry['in_expenditures']
-        rebalanced = entry['in_rebalanced']
-        
+        if args.nodeid:
+            # Sum "in" and "out" values
+            earnings = entry['in_earnings'] + entry['out_earnings']
+            forwarded = entry['in_forwarded'] + entry['out_forwarded']
+            expense = entry['in_expenditures'] + entry['out_expenditures']
+            rebalanced = entry['in_rebalanced'] + entry['out_rebalanced']
+        else:
+            # Just use the in values, they are symetrical
+            earnings = entry['in_earnings']
+            forwarded = entry['in_forwarded']
+            expense = entry['in_expenditures']
+            rebalanced = entry['in_rebalanced']
+
         # Calculate rates with checks for division by zero
         forwarded_rate = (earnings / forwarded) * 1_000_000 if forwarded != 0 else 0
         rebalance_rate = (expense / rebalanced) * 1_000_000 if rebalanced != 0 else 0
@@ -66,7 +76,7 @@ def main():
         total_net_earnings += net_earnings
 
         rows.append([
-            bucket_time,
+            format_bucket_time(entry['bucket_time']),
             f"{forwarded:,}".replace(',', '_'),
             f"{forwarded_rate:,.0f}",
             f"{earnings:,}".replace(',', '_'),
