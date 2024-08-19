@@ -436,8 +436,8 @@ suffix, e.g.
 
 ### `clboss-recent-earnings`, `clboss-earnings-history`
 
-As of CLBOSS version [TBD] earnings and expenditures are tracked on a
-daily basis. 
+As of CLBOSS version 0.14 earnings and expenditures are tracked on a
+daily basis.
 
 The `clboss-recent-earnings` command returns an equivalent data
 structure to the `offchain_earnings_tracker` collection in
