@@ -133,11 +133,16 @@ def calculate_net_earnings(data, network_option):
 
 def main():
     parser = argparse.ArgumentParser(description="Run lightning-cli with specified network")
+    parser.add_argument('--mainnet', action='store_true', help='Run on mainnet')
+    parser.add_argument('--testnet', action='store_true', help='Run on testnet')
     parser.add_argument('days', nargs='?', help='The number of days to pass to clboss-earnings-history (optional)')
 
     args = parser.parse_args()
 
-    network_option = '--mainnet'  # Default to mainnet
+    if args.testnet:
+        network_option = '--testnet'
+    else:
+        network_option = '--mainnet'  # Default to mainnet if no option is specified
 
     if args.days:
         earnings_data = run_lightning_cli_command(network_option, 'clboss-recent-earnings', str(args.days))
