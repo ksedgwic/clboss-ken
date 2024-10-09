@@ -8,6 +8,9 @@
 #include <sstream>
 #include <vector>
 #include <string.h>
+#include <string>
+
+extern std::string g_argv0;
 
 namespace Util {
 
@@ -80,7 +83,7 @@ private:
 	std::string addr2line(void* addr) const {
 		char cmd[512];
 		snprintf(cmd, sizeof(cmd),
-			 "addr2line -C -f -p -e %s %p", program_invocation_name, addr);
+			 "addr2line -C -f -p -e %s %p", g_argv0.c_str(), addr);
 
 		std::array<char, 128> buffer;
 		std::string result;
