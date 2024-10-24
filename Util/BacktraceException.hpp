@@ -10,6 +10,10 @@
 #include <string.h>
 #include <string>
 
+#ifdef __FreeBSD__
+#include <stdlib.h>
+#endif
+
 extern std::string g_argv0;
 
 namespace Util {
@@ -77,13 +81,28 @@ private:
 		return oss.str();
 	}
 
+	const char* progname() const {
+		// This variable is set by the CLBOSS mainline.
+		if (g_argv0 != "unknown")
+			return g_argv0.c_str();
+
+		// When libclboss is linked with the unit tests the
+		// g_argv0 variable is not set and we need to use
+		// built-in versions
+#ifdef __FreeBSD__
+		return getprogname();
+#else
+		return program_invocation_name;
+#endif
+	}
+
 	// Unfortunately there is no simple way to get a high quality
 	// backtrace using in-process libraries.  Instead for now we
 	// popen an addr2line process and use it's output.
 	std::string addr2line(void* addr) const {
 		char cmd[512];
 		snprintf(cmd, sizeof(cmd),
-			 "addr2line -C -f -p -e %s %p", g_argv0.c_str(), addr);
+			 "addr2line -C -f -p -e %s %p", progname(), addr);
 
 		std::array<char, 128> buffer;
 		std::string result;
