@@ -51,6 +51,29 @@ def calculate_peer_score(peer, channel, daystr):
     return fwd_per_bal_per_day
 
 
+def calculate_trcl(peer, channel, daystr):
+    to_us_msat = channel.get("to_us_msat", 0)
+    age = max(1, peer.get("age", 0) // 86400) # age in days, but not zero
+
+    if daystr:
+        window = min(age, int(daystr))
+    else:
+        window = age
+
+    if to_us_msat == 0:
+        return 0.0
+
+    earnings = peer.get("in_earnings", 0) + peer.get("out_earnings", 0)
+    expenditures = peer.get("in_expenditures", 0) + peer.get("out_expenditures", 0)
+    netearnings = earnings - expenditures
+
+    epd_per_bal = (float(netearnings) / float(to_us_msat))
+    epd_per_bal_per_day = epd_per_bal / window
+
+    # in basis points
+    return epd_per_bal_per_day * 365 * 100 * 100
+
+
 def pad_string(s, width):
     pad = width - wcswidth(s)
     return s + " " * pad
@@ -133,6 +156,8 @@ def main():
                     "out_forwarded": 0,
                     "in_earnings": 0,
                     "out_earnings": 0,
+                    "in_expenditures": 0,
+                    "out_expenditures": 0,
                     "age": 0,
                 }
 
@@ -167,6 +192,8 @@ def main():
                 peers[id]["out_forwarded"] = recent[id].get("out_forwarded", 0)
                 peers[id]["in_earnings"] = recent[id].get("in_earnings", 0)
                 peers[id]["out_earnings"] = recent[id].get("out_earnings", 0)
+                peers[id]["in_expenditures"] = recent[id].get("in_expenditures", 0)
+                peers[id]["out_expenditures"] = recent[id].get("out_expenditures", 0)
 
             if id in peer_metrics:
                 peers[id]["age"] = peer_metrics[id].get("age", 0)
@@ -190,6 +217,8 @@ def main():
         peer = peers[peer_id]
         fpbpd = calculate_peer_score(peer, channels[short_channel_id], args.days)
         fpbpdstr = f"{fpbpd:.5f}"
+        trcl = calculate_trcl(peer, channels[short_channel_id], args.days)
+        trclstr = f"{trcl:.3f}"
         fwded = peer.get("in_forwarded", 0) + peer.get("out_forwarded", 0)
         earned = peer.get("in_earnings", 0) + peer.get("out_earnings", 0)
         alias = pad_string(peer["alias"], max_alias_length)
@@ -208,17 +237,18 @@ def main():
                 forwarded,
                 earnings,
                 fpbpdstr,
+                trclstr,
             ]
         )
 
     # Print the table without grid
     table_str = tabulate(
         table_data,
-        headers=["Alias", "SCID", "O", "to us", "Age", "Forwarded", "Earnings", "FPBPD"],
+        headers=["Alias", "SCID", "O", "to us", "Age", "Forwarded", "Earnings", "FPBPD", "TRCL"],
         tablefmt="plain",
         stralign="left",
         numalign="right",
-        colalign=("left", "left", "left", "right", "right", "right", "right", "right"),
+        colalign=("left", "left", "left", "right", "right", "right", "right", "right", "right"),
         disable_numparse=True,
     )
 
