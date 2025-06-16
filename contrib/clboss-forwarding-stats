@@ -33,7 +33,7 @@ def run_lightning_cli_command(lightning_dir, network_option, command, *args):
 
 
 def peer_age(peer):
-    return max(1, peer.get("age", 0) // 86400) # age in days, but not zero
+    return max(1, peer.get("age", 0) // 86400)  # age in days, but not zero
 
 
 def peer_net_earnings(peer):
@@ -47,6 +47,7 @@ def peer_window(age, daystr):
         return min(age, int(daystr))
     else:
         return age
+
 
 def pad_string(s, width):
     pad = width - wcswidth(s)
@@ -199,7 +200,7 @@ def main():
             if id in peer_metrics:
                 peers[id]["age"] = peer_metrics[id].get("age", 0)
             else:
-                 # if we don't know use a year
+                # if we don't know use a year
                 peers[id]["age"] = 365 * 86400
 
     sorted_channels = sorted(
@@ -258,6 +259,7 @@ def main():
 
     print(table_str)
     print("* annualized Trailing Return on Current Liquidity in basis points")
+
 
 if __name__ == "__main__":
     main()
