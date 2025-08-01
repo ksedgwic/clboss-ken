@@ -54,4 +54,9 @@ cd contrib/
 
 ./clboss-routing-stats
 
+./clboss-forwarding-stats
+
+The `clboss-routing-stats` and `clboss-forwarding-stats` scripts now accept `--days` to limit
+how many days of earnings history are considered when ranking channels.
+
 ```
