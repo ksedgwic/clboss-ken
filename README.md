@@ -489,6 +489,18 @@ The value is in parts-per-million (PPM) of the amount being moved.
 The default is `5000` (0.5% of the amount). Both the
 JitRebalancer and EarningsRebalancer honor this limit.
 
+### `--clboss-min-nodes-to-process=<number>`
+
+Sets the minimum number of nodes that CLBOSS must know about before it
+will try to propose channels to popular nodes.  Pass this option to
+`lightningd` to override the default threshold.
+
+The defaults depend on the network:
+
+* Bitcoin: 800
+* Testnet: 200
+* Other networks: 10
+
 ### `clboss-recent-earnings`, `clboss-earnings-history`
 
 As of CLBOSS version 0.14, earnings and expenditures are tracked on a daily basis.

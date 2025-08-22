@@ -9,7 +9,9 @@
 #include"Boss/Msg/ManifestCommand.hpp"
 #include"Boss/Msg/ManifestNotification.hpp"
 #include"Boss/Msg/Manifestation.hpp"
+#include"Boss/Msg/ManifestOption.hpp"
 #include"Boss/Msg/Notification.hpp"
+#include"Boss/Msg/Option.hpp"
 #include"Boss/Msg/PreinvestigateChannelCandidates.hpp"
 #include"Boss/Msg/ProposeChannelCandidates.hpp"
 #include"Boss/Msg/SolicitChannelCandidates.hpp"
@@ -121,6 +123,7 @@ private:
 	 * later.
 	 */
 	size_t min_nodes_to_process = size_t(800);
+	bool min_nodes_to_process_set;
 
 	void start() {
 		running = false;
@@ -129,15 +132,19 @@ private:
 		have_run = false;
 		become_aggressive = false;
 		total_owned = nullptr;
+		min_nodes_to_process_set = false;
+		min_nodes_to_process = 800;
 
 		bus.subscribe<Msg::Init>([this](Msg::Init const& init) {
 			rpc = &init.rpc;
 			self = init.self_id;
 			db = init.db;
-			switch (init.network) {
-			case Boss::Msg::Network_Bitcoin: min_nodes_to_process = 800; break;
-			case Boss::Msg::Network_Testnet: min_nodes_to_process = 200; break;
-			default: min_nodes_to_process = 10; break; // others are likely small
+			if (!min_nodes_to_process_set) {
+				switch (init.network) {
+				case Boss::Msg::Network_Bitcoin: min_nodes_to_process = 800; break;
+				case Boss::Msg::Network_Testnet: min_nodes_to_process = 200; break;
+				default: min_nodes_to_process = 10; break; // others are likely small
+				}
 			}
 			return db.transact().then([this](Sqlite3::Tx tx) {
 				/* Create the on-database have_run flag.  */
@@ -163,6 +170,17 @@ private:
 				tx.commit();
 				return Ev::lift();
 			});
+		});
+		bus.subscribe<Msg::Option
+			     >([this](Msg::Option const& o) {
+			if (o.name != "clboss-min-nodes-to-process")
+				return Ev::lift();
+			min_nodes_to_process = std::size_t(double(o.value));
+			min_nodes_to_process_set = true;
+			return Boss::log( bus, Boss::Info
+					, "ChannelFinderByPopularity: min-nodes-to-process set to %zu"
+					, min_nodes_to_process
+					);
 		});
 		bus.subscribe< Msg::SolicitChannelCandidates
 			     >([this](Msg::SolicitChannelCandidates const& _) {
@@ -199,6 +217,11 @@ private:
 				"",
 				"Trigger ChannelFinderByPopularity algorithm.",
 				false
+			}) + bus.raise(Msg::ManifestOption{
+				"clboss-min-nodes-to-process",
+				Msg::OptionType_Int,
+				Json::Out::direct(std::uint64_t(800)),
+				"Minimum number of nodes known before attempting to open channels."
 			});
 		});
 		bus.subscribe< Msg::Notification
