@@ -4,6 +4,7 @@ import os
 import subprocess
 import argparse
 import json
+import csv
 from datetime import datetime
 from tabulate import tabulate
 from clboss.alias_cache import lookup_alias, is_nodeid, lookup_nodeid_by_alias
@@ -42,6 +43,11 @@ def main():
                         help='The node ID (or alias) to pass to clboss-earnings-history (optional)')
 
     parser.add_argument('--lightning-dir', help='lightning data location')
+
+    parser.add_argument('--csv-file', help='Write raw data to the given CSV file')
+    parser.add_argument('--graph-file', help='Write a PNG graph of net earnings')
+    parser.add_argument('--graph-period', default='day', choices=['day','week','month','quarter'],
+                        help='Aggregation period for --graph-file')
 
     args = parser.parse_args()
 
@@ -93,6 +99,7 @@ def main():
 
     # Process and format data
     rows = []
+    csv_rows = []
     for entry in earnings_data['history']:
         in_earnings = entry['in_earnings']
         in_forwarded = entry['in_forwarded']
@@ -127,6 +134,8 @@ def main():
         total_out_expenditures += out_expenditures
         total_out_rebalanced += out_rebalanced
 
+        date_str = format_bucket_time(entry['bucket_time'])
+
         if args.nodeid_or_alias:
             net_earnings = (in_earnings + out_earnings) - (in_expenditures + out_expenditures)
         else:
@@ -135,7 +144,7 @@ def main():
 
         if args.nodeid_or_alias:
             rows.append([
-                format_bucket_time(entry['bucket_time']),
+                date_str,
                 f"{in_forwarded:,}".replace(',', '_'),
                 f"{in_forwarded_rate:,.0f}",
                 f"{in_earnings:,}".replace(',', '_'),
@@ -150,9 +159,25 @@ def main():
                 f"{out_expenditures:,}".replace(',', '_'),
                 f"{int(net_earnings):,}".replace(',', '_')
             ])
+            csv_rows.append([
+                date_str,
+                in_forwarded,
+                round(in_forwarded_rate, 0),
+                in_earnings,
+                out_forwarded,
+                round(out_forwarded_rate, 0),
+                out_earnings,
+                in_rebalanced,
+                round(in_rebalance_rate, 0),
+                in_expenditures,
+                out_rebalanced,
+                round(out_rebalance_rate, 0),
+                out_expenditures,
+                int(net_earnings)
+            ])
         else:
             rows.append([
-                format_bucket_time(entry['bucket_time']),
+                date_str,
                 f"{in_forwarded:,}".replace(',', '_'),
                 f"{in_forwarded_rate:,.0f}",
                 f"{in_earnings:,}".replace(',', '_'),
@@ -160,6 +185,16 @@ def main():
                 f"{in_rebalance_rate:,.0f}",
                 f"{in_expenditures:,}".replace(',', '_'),
                 f"{int(net_earnings):,}".replace(',', '_')
+            ])
+            csv_rows.append([
+                date_str,
+                in_forwarded,
+                round(in_forwarded_rate, 0),
+                in_earnings,
+                in_rebalanced,
+                round(in_rebalance_rate, 0),
+                in_expenditures,
+                int(net_earnings)
             ])
 
     # Add a header (separator) row
@@ -220,6 +255,22 @@ def main():
             f"{total_out_expenditures:,}".replace(',', '_'),
             f"{int(total_net_earnings):,}".replace(',', '_')
         ])
+        csv_rows.append([
+            "TOTAL",
+            total_in_forwarded,
+            "",
+            total_in_earnings,
+            total_out_forwarded,
+            "",
+            total_out_earnings,
+            total_in_rebalanced,
+            "",
+            total_in_expenditures,
+            total_out_rebalanced,
+            "",
+            total_out_expenditures,
+            int(total_net_earnings)
+        ])
     else:
         # Incoming and outgoing are always the same (balanced)
         rows.append([
@@ -234,11 +285,73 @@ def main():
             f"{total_in_expenditures:,}".replace(',', '_'),
             f"{int(total_net_earnings):,}".replace(',', '_')
         ])
+        csv_rows.append([
+            "TOTAL",
+            total_in_forwarded,
+            "",
+            total_in_earnings,
+            total_in_rebalanced,
+            "",
+            total_in_expenditures,
+            int(total_net_earnings)
+        ])
 
     if args.nodeid_or_alias:
         print(f"Showing history for {nodeid} aka {alias}")
 
     print(tabulate(rows, headers=headers, tablefmt="pretty", stralign="right", numalign="right"))
+
+    if args.csv_file:
+        with open(args.csv_file, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(headers)
+            writer.writerows(csv_rows)
+        print(f"Wrote CSV data to {args.csv_file}")
+
+    if args.graph_file:
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError:
+            print("matplotlib is required to output graphs. Please install it.")
+        else:
+            def period_key(ds):
+                if ds == "Legacy":
+                    return None
+                dt = datetime.strptime(ds, '%Y-%m-%d')
+                if args.graph_period == 'day':
+                    return dt.strftime('%Y-%m-%d')
+                elif args.graph_period == 'week':
+                    iso = dt.isocalendar()
+                    return f"{iso[0]}-W{iso[1]:02d}"
+                elif args.graph_period == 'month':
+                    return dt.strftime('%Y-%m')
+                else:  # quarter
+                    q = (dt.month - 1)//3 + 1
+                    return f"{dt.year}-Q{q}"
+
+            agg = {}
+            for row in csv_rows:
+                key = period_key(row[0])
+                if key is None:
+                    continue
+                agg[key] = agg.get(key, 0) + row[-1]
+
+            if not agg:
+                print("No data to plot")
+            else:
+                labels = sorted(agg.keys())
+                values = [agg[k] for k in labels]
+                plt.figure(figsize=(10, 6))
+                plt.plot(labels, values, marker='o')
+                plt.xlabel(args.graph_period.capitalize())
+                plt.ylabel('Net Earnings (sats)')
+                plt.title('CLBOSS Earnings History')
+                plt.xticks(rotation=45, ha='right')
+                plt.tight_layout()
+                plt.grid(True)
+                plt.savefig(args.graph_file)
+                plt.close()
+                print(f"Wrote graph to {args.graph_file}")
 
 if __name__ == "__main__":
     main()
